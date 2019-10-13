@@ -1,0 +1,93 @@
+extends layout
+
+block content
+  input(type="hidden" id="nano_account" value=""+site.nano_account)
+  input(type="hidden" id="guess_amount" value=""+site.guess_amount)
+  input(type="hidden" id="dev_cut" value=""+site.dev_cut)
+  input(type="hidden" id="current_guess" value="")
+  input(type="hidden" id="game_id" value=""+game_id)
+
+  div(id="game_over")
+    div(id="game_over_container")
+      div
+        span(id="game_over_words") Puzzle Solved!
+        br
+        | The word was:&nbsp;
+        span(id="game_over_answer")
+        hr(width="50%")
+        button(type="button" class="btn btn-primary" onclick="game_over_off()") Continue
+
+  div(id="overlay")
+    div(id="overlay_close" onclick="overlay_off()")
+      | X
+    div(id="overlay_container")
+      div
+        span(id="overlay_guess") You guess "
+          span(id="overlay_guess_letter")
+          | "
+      div(class="mt-1")
+        span() Scan the QRCode with a Nano Wallet or click one of the links.
+      div(class="mt-1")
+        span() Amount:&nbsp;
+          span(id="overlay_amount")
+          | &nbsp;Nano
+      
+      div
+        a(href="#" id="qrcode_href")
+         canvas(id="canvas" class="mt-3")
+
+      div(class="mt-2")
+        span(id="overlay_links")
+      div(class="mt-2")
+        | Looking for a mobile wallet? We recommend&nbsp;
+        a(href="https://natrium.io" target="_new") Natrium
+        | !
+
+  div(class="container")
+    div(class="row" id="intro")
+      h2 Welcome to SomeNano Words!
+    div(class="row")
+      //div
+      //  a(href="#" class="" data-toggle="collapse" data-target="#intro_text") show/hide
+      div(id="intro_text" class="collapse show mt-2")
+          p This game was created for the&nbsp;
+            a(href="https://medium.com/snapy-io/introducing-nano-jams-ff28d2e31d42" target="_new") October 2019 Nano Jam
+            | .  This is a simple game to demonstrate the ease of building apps that utilize&nbsp;
+            a(href="https://www.nano.org" target="_new") Nano cryptocurreny
+            | .  Transactions are fast and feeless.  That allows for game developers to use Nano as in-game currency making&nbsp;
+            a(href="https://snapy.io/" target="_new") real transactions
+            | !
+          h3 How to play:
+          p This game is basically Hangman or Wheel of Fortune.  Tap/click the letter you want to guess.  Use the QRCode or link to send a small Nano transaction to guess that letter.  Your payout is proportional to the number of correct unique letters you guess.  If the word is "GLOVE" and you guess "G" and "V" (2 of 5 letters), you get 40% of the prize pool sent back to your account once the word is solved.  If the word is "FOOD" and you guess "O" (1 of 3 unique letters), you get 33% of the prize pool.  If two people guess a letter at the same time, the first person will get the guess and the other person will get their guess refunded back to their account.
+    div(class="row justify-content-center")
+        hr(width="50%")
+    
+    div(class="row" id="phrase")
+      div(class="col p-2")
+        div(class="d-flex flex-row flex-wrap justify-content-center" id="phrase_container")
+
+    div(class="row")
+      div(class="col text-center")
+        hr(width="50%")
+        span() Choose a letter below to solve the mystery word above!
+
+    div(class="row" id="letters")
+      div(class="col text-center")
+        div(class="d-flex flex-row flex-wrap justify-content-center")
+          each letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            div(class="p-2")
+              button(type="button" class="btn btn-primary letter-btn" id="letter_"+letter onclick="overlay_on('"+letter+"')") #{letter}
+
+    div(class="row")
+      div(class="col text-center" id="prize_pool_container")
+        hr(width="50%")
+        span() Prize Pool:&nbsp;
+        span(id="prize_pool") 0.0 Nano
+
+    div(class="row mt-5" id="accounts")
+      div(class="col")
+        h3 Players
+        div(class="list-group" id="accounts_list")
+
+block js
+  script(src="/javascripts/words.js")

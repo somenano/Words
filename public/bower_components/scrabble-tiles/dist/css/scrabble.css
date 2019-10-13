@@ -1,0 +1,97 @@
+.display--inline-block {
+  display: inline-block;
+  float: none; }
+
+.scrabble-container {
+  clear: both; }
+  @media screen and (min-width: 1024px) {
+    .scrabble-container {
+      margin-left: 15px; } }
+  .scrabble-container .scrabble-tile__space {
+    width: 90px;
+    height: 100px;
+    display: inline-block;
+    background: #D5B292;
+    color: #2A1F1B;
+    border-radius: 4px;
+    font-size: 60px;
+    font-weight: 400;
+    line-height: 100px;
+    margin: 10px 3px;
+    text-align: center;
+    vertical-align: bottom;
+    cursor: default;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 4px rgba(107, 107, 107, 0.8), inset 3px 0 2px rgba(255, 255, 255, 0.4), inset 0 3px 0px rgba(255, 255, 255, 0.5), inset -2px -3px 0px rgba(143, 128, 82, 0.6); }
+  .scrabble-container .scrabble-tile__letter {
+    background: #D5B292 url("../images/scrabble-tile-dark-bg.jpg") no-repeat scroll 0 0;
+    border-radius: 4px;
+    box-shadow: 3px 3px 4px #c8c8c8, 3px 0 2px rgba(213, 178, 146, 0.4) inset, 0 3px 0 rgba(213, 178, 146, 0.5) inset, -3px -4px 0 rgba(107, 107, 107, 0.6) inset;
+    color: #2A1F1B;
+    cursor: default;
+    display: block;
+    float: left;
+    font-family: "Spinnaker", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    height: 35px;
+    line-height: 32px;
+    margin: 10px 3px;
+    text-align: center;
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.9), 0 -1px 1px rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    width: 35px; }
+    @media screen and (min-width: 480px) {
+      .scrabble-container .scrabble-tile__letter {
+        width: 31px;
+        height: 31px;
+        line-height: 25px;
+        font-size: 18px; } }
+    @media screen and (min-width: 640px) {
+      .scrabble-container .scrabble-tile__letter {
+        width: 40px;
+        height: 47px;
+        display: inline-block;
+        float: none;
+        font-size: 24px;
+        line-height: 47px; } }
+    @media screen and (min-width: 768px) {
+      .scrabble-container .scrabble-tile__letter {
+        width: 53px;
+        height: 58px;
+        font-size: 30px;
+        line-height: 58px; } }
+
+.scrabble-tile__number {
+  font-size: 13px;
+  position: relative;
+  right: 0;
+  top: 5px; }
+  @media screen and (min-width: 480px) {
+    .scrabble-tile__number {
+      font-size: 11px; } }
+  @media screen and (min-width: 768px) {
+    .scrabble-tile__number {
+      font-size: 17px;
+      top: 8px; } }
+
+.scrabble-tile__rotate-nw {
+  transform: rotate(3deg); }
+
+.scrabble-tile__rotate-ne {
+  transform: rotate(-2deg); }
+
+.scrabble-tile--end-letter {
+  margin-right: 20px !important; }
+
+.scrabble-tile--end-letter__mobile-only {
+  margin-right: 20px !important; }
+  @media screen and (min-width: 768px) {
+    .scrabble-tile--end-letter__mobile-only {
+      margin-right: 0 !important; } }
+
+.scrabble-tile__new-word {
+  clear: both; }
+  @media screen and (min-width: 480px) {
+    .scrabble-tile__new-word {
+      clear: none; } }
