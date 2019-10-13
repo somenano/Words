@@ -1,0 +1,104 @@
+body {
+  padding: 0px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background-color: white;
+}
+
+a:link {
+  color: #0275d8;
+}
+
+a:visited {
+    color: #0275d8;
+}
+
+table {
+    table-layout: fixed;
+    width: 90%;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+#phrase button {
+    font-size: 5vw;
+    font-family: 'Roboto Mono', monospace;
+}
+#phrase {
+
+}
+
+#letters button {
+    font-size: 1em;
+    font-family: 'Roboto Mono', monospace;
+}
+
+#prize_pool_container {
+    font-size: 2em;
+}
+
+#overlay {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.9);
+    z-index: 2;
+    text-align: center;
+}
+
+#overlay_container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: white;
+    transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+}
+
+#overlay_guess {
+    font-size: 3em;
+}
+
+#overlay_close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 3em;
+    color: red;
+    cursor: pointer;
+}
+
+#game_over {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.9);
+    z-index: 2;
+    text-align: center;
+}
+
+#game_over_container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: white;
+    transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+}
+
+#game_over_words {
+    font-size: 3em;
+}

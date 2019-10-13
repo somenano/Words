@@ -1,0 +1,147 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('words:server');
+var http = require('http');
+var socketIO = require('socket.io');
+var request = require('request');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+// Socket.io
+exports.io = socketIO(server, {
+  pingTimeout: 60000,
+});
+exports.io.on('connection', (socket) => {
+  // console.log('Socket.io Connected');
+  // socket.on('disconnect', () => console.log('Socket.io Disconnected'));
+});
+
+// Send transaction queue
+exports.send_queue = [];
+exports.send_transaction = function()
+{
+    /*
+    Get a transaction out of the queue and send it!
+    */
+    try {
+        var options = exports.send_queue.shift();
+    } catch(err) {
+        console.error('Error dequeuing transaction');
+        console.error(err);
+    }
+
+    return new Promise((resolve, reject) => {
+        request(options, function(err, res, body) {
+            if (err) {
+                console.error('error sending transaction: ', err);
+                resolve(false);
+            }
+            var answer = body;
+
+            if (answer.status != "success") {
+                console.error('send transaction did not return success!');
+                console.error(answer);
+                resolve(false);
+            }
+
+            console.log('SUCCESSFUL SEND');
+            console.log(answer);
+            resolve(true);
+        });
+    });
+}
+
+async function check_transactions()
+{
+    // Periodic function to check if a transaction is queued.  If there is, send it!
+    // console.log('Send queue has length: ' + exports.send_queue.length);
+    while (exports.send_queue.length > 0) {
+        await exports.send_transaction();
+    }
+    setTimeout(check_transactions, 2*1000);
+}
+check_transactions();
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
