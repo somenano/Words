@@ -109,7 +109,7 @@ exports.queue_transaction = function(account_from, account_to, amount, priority)
     var options = {
         url: 'https://snapy.io/api/v1/send',
         headers: {
-            'x-api-key': '***REMOVED***',
+            'x-api-key': Config.snapy_key,
             'Content-type': 'Application/json'
         },
         method: 'post',
