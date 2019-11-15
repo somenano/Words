@@ -58,6 +58,7 @@ exports.send_transaction = function()
         request(options, function(err, res, body) {
             if (err) {
                 console.error('error sending transaction: ', err);
+		console.error(options);
                 resolve(false);
             }
             var answer = body;
@@ -65,6 +66,7 @@ exports.send_transaction = function()
             if (answer.status != "success") {
                 console.error('send transaction did not return success!');
                 console.error(answer);
+		console.error(options);
                 resolve(false);
             }
 
@@ -79,12 +81,14 @@ async function check_transactions()
 {
     // Periodic function to check if a transaction is queued.  If there is, send it!
     // console.log('Send queue has length: ' + exports.send_queue.length);
-    while (exports.send_queue.length > 0) {
+    if (exports.send_queue.length > 0) {
         await exports.send_transaction();
     }
     setTimeout(check_transactions, 2*1000);
 }
 check_transactions();
+
+exports.game_data_cache = {};
 
 /**
  * Normalize a port into a number, string, or false.

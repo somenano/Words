@@ -5,6 +5,7 @@ var Guess = require('../models/guess.js');
 var Site = require('../models/site.js');
 var Config = require('../config/words.js');
 var Utility = require('../utility/words.js');
+var server = require('../bin/www');
 
 var request = require('request');
 
@@ -36,56 +37,30 @@ exports.index = function(req, res) {
 
 }
 
-exports.game_data = function(req, res) {
+exports.what = async function(req, res) {
+	var game_data = await Utility.get_game_data(null);
+	return res.json( {
+		'game_data': game_data,
+		'game_data_cache': server.game_data_cache 
+	});
+}
+
+exports.game_data = async function(req, res) {
     /*
     Return json data of given game (game_id or current)
     */
     var game_id = req.params.game_id;
-    var search = {};
-    if (game_id) {
-        search = {
-            _id: game_id
-        }
+
+    if (game_id || Object.keys(server.game_data_cache).length == 0) {
+        // Generate game_data from database
+        console.log('Returning database game data');
+        var ret = await Utility.get_game_data(game_id);
+        return res.json( ret );;
     }
-    var game = null;
-    var guesses = [];
-    Site.find({}, function(err, site_results) {
-        Game.findOne(search, {}, {sort: { 'date_created': -1 } }, function(err, results) {
-            if (err) {
-                console.error('Error getting game data. game_id: ' + game_id);
-                console.error(err);
-                return res.json({
-                    success: "false"
-                });
-            }
 
-            game = results;
-            Guess.find({game: game}, function(err, guess_results) {
-                guesses = guess_results;
-                var guessed_letters = [];
-                for (guess of guesses) {
-                    guessed_letters.push(Utility.amount_to_letter(guess.amount));
-                }
-
-                var phrase = "";
-                for (letter of game.phrase) {
-                    if (guessed_letters.includes(letter) || guessed_letters.includes(letter.toUpperCase()) || letter == " ") {
-                        phrase = phrase.concat(letter);
-                    } else {
-                        phrase = phrase.concat("_");
-                    }
-                }
-
-                return res.json({
-                    success: true,
-                    site: site_results[0],
-                    guessed_letters: guessed_letters,
-                    phrase: phrase,
-                    guesses: guesses,
-                });
-            });
-        });
-    });
+    // Return cached game_data
+    console.log('Returning cached game data');
+    return res.json( server.game_data_cache );
 }
 
 exports.archive = function(req, res) {

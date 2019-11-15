@@ -9,7 +9,68 @@ var Game = require('../models/game.js');
 var Site = require('../models/site.js');
 var Config = require('../config/words.js');
 var Phrase = require('../models/phrase.js');
-var server = require('../bin/www');
+
+exports.get_game_data = async function(game_id) {
+    /*
+    Returns game data for game_id
+    */
+    var search = {};
+    if (game_id) {
+        search = {
+            _id: game_id
+        }
+    }
+    var game = null;
+    var guesses = [];
+
+    return new Promise((resolve, reject) => {
+
+        Site.find({}, function(err, site_results) {
+            Game.findOne(search, {}, {sort: { 'date_created': -1 } }, function(err, results) {
+                if (err) {
+                    console.error('Error getting game data. game_id: ' + game_id);
+                    console.error(err);
+                    resolve({
+                        success: "false"
+                    });
+                }
+
+                game = results;
+                Guess.find({game: game}, function(err, guess_results) {
+                    guesses = guess_results;
+                    var guessed_letters = [];
+                    for (var guess of guesses) {
+                        guessed_letters.push(exports.amount_to_letter(guess.amount));
+                    }
+
+                    var phrase = "";
+                    for (var letter of game.phrase) {
+                        if (guessed_letters.includes(letter) || guessed_letters.includes(letter.toUpperCase()) || letter == " ") {
+                            phrase = phrase.concat(letter);
+                        } else {
+                            phrase = phrase.concat("_");
+                        }
+                    }
+
+                    var game_data = {
+                        success: true,
+                        site: site_results[0],
+                        guessed_letters: guessed_letters,
+                        phrase: phrase,
+                        guesses: guesses,
+                    };
+
+                    if (!game_id) {
+                        // Update cache for current game
+                        server.game_data_cache = game_data;
+                    }
+
+                    resolve(game_data);
+                });
+            });
+        });
+    });
+}
 
 exports.create_new_game = function(callback) {
     /*
@@ -28,10 +89,13 @@ exports.create_new_game = function(callback) {
             });
 
             // Save new game with randomly selected phrase
-            game.save(function(error) {
+            game.save(async function(error) {
                 if (error) {
                     console.error('Error saving new game... ' + error);
                 }
+                // Setup cache
+                await exports.get_game_data(null);
+
                 return callback();
             });
         });
@@ -109,7 +173,7 @@ exports.queue_transaction = function(account_from, account_to, amount, priority)
     var options = {
         url: 'https://snapy.io/api/v1/send',
         headers: {
-            'x-api-key': 'pub_5d240281677f2419aa1d5849-e530a6a7-ccbe-4ab9-a2ed-e68f4c5f0612',
+            'x-api-key': Config.snapy_key,
             'Content-type': 'Application/json'
         },
         method: 'post',

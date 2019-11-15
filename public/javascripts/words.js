@@ -2,7 +2,7 @@
 
 
 /* Socket.io */
-var socket = io.connect('/');
+var socket = io.connect('https://words.somenano.com');
 socket.on('new_guess', handle_new_guess);
 socket.on('game_over', handle_game_over);
 
@@ -39,14 +39,14 @@ function gen_addresses(account, amount)
     }
 }
 
-function handle_new_guess()
+function handle_new_guess(data)
 {
     /*
     Handle a new guess inbound
     */
     console.log("NEW GUESS");
 
-    load_data();
+    populate_data(data);
 }
 
 function handle_game_over(data)
@@ -191,6 +191,103 @@ function calculate_prize_pool(puzzle, guesses)
     }
 }
 
+function populate_data(json)
+{
+    /*
+    Populate page with given data
+    */
+    
+    var html = '';
+
+    // Remove overlay if shown and has been guessed
+    if (json.guessed_letters.indexOf($('#current_guess').val()) >= 0) overlay_off();
+
+    // Update site data
+    $('#nano_account').val(json.site.nano_account);
+    $('#guess_amount').val(json.site.guess_amount);
+    $('#dev_cut').val(json.site.dev_cut);
+
+    // Rewrite phrase
+    var rotate = '';
+    html += '';
+    for (var l in json.phrase) {
+        l = json.phrase[l];
+        var outline = '-outline';
+        if (l != '_') outline = '';
+        html += '<div class="p-1">';
+        html += '<button type="button" class="btn btn' + outline + '-primary">';
+        html += l;
+        html += '</button>';
+        html += '</div>';
+    }
+    $('#phrase_container').empty();
+    $('#phrase_container').append(html);
+
+    // Mark letters
+    for (var l in json.guessed_letters) {
+        l = json.guessed_letters[l];
+        $('#letter_' + l).prop('disabled', true);
+        $('#letter_' + l).html('&nbsp;');
+    }
+
+    // if game_id, it is archive, disable all letters
+    if ($('#game_id').val().length > 0) {
+        $('.letter-btn').prop('disabled', true);
+    }
+
+    // Update prize pool
+    var prize_pool = calculate_prize_pool(json.phrase, json.guesses);
+    $('#prize_pool').empty();
+    $('#prize_pool').text('' + prize_pool.current.toFixed(6) + ' Nano');
+
+    // Update players list
+    // Generate array of players with guesses
+    var players = [];
+    for (var g in json.guesses) {
+        g = json.guesses[g];
+
+        var found = false;
+        for (var p in players) {
+            p = players[p];
+            if (g.account_from == p.account) {
+                found = true;
+                p.letters.push(amount_to_letter(g.amount));
+            }
+        }
+        if (!found) {
+            players.push({
+                account: g.account_from,
+                letters: [amount_to_letter(g.amount)]
+            });
+        }
+    }
+
+    // Write the table for the players list
+    html = '<table class="table table-hover">';
+    html += '<thead>';
+    html += '<tr><th>Nano Account</th><th>Letters Guessed</th><th>Projected Payout <a href="#" data-toggle="tooltip" data-placement="top" title="Projected payout is what you will receive if all the remaining letters are guessed correctly. If any incorrect guesses are made, your projected payout will increase!">(?)</a></th></tr>';
+    html += '</thead>';
+    html += '<tbody>';
+    for (var p in players) {
+        p = players[p];
+        var correct_guesses = 0;
+        for (var l in p.letters) {
+            l = p.letters[l];
+            if (json.phrase.indexOf(l) >= 0) correct_guesses += 1;
+        }
+        var payout_percent = correct_guesses / number_unique_letters_in_puzzle(json.phrase);
+        html += '<tr><td class="text-truncate"><a href="https://nanocrawler.cc/explorer/account/' + p.account + '" target="_new">' + p.account + '</a></td><td>' + p.letters.join(', ') + '</td><td>' + (prize_pool.projected*payout_percent).toFixed(6) + ' Nano (' + (100*payout_percent).toFixed(2) + '%)</td></tr>';
+    }
+    html += '</tbody>';
+    html += '</table>';
+
+    $('#accounts_list').empty();
+    $('#accounts_list').append(html);
+
+    // Enable tooltips
+    $('[data-toggle="tooltip"]').tooltip()
+}
+
 function load_data()
 {
     /*
@@ -202,97 +299,7 @@ function load_data()
         console.log(xhr);
         // guessed_letters, guesses, phrase
         var json = JSON.parse(xhr.responseText);
-        var html = '';
-
-        // Remove overlay if shown and has been guessed
-        if (json.guessed_letters.indexOf($('#current_guess').val()) >= 0) overlay_off();
-
-        // Update site data
-        $('#nano_account').val(json.site.nano_account);
-        $('#guess_amount').val(json.site.guess_amount);
-        $('#dev_cut').val(json.site.dev_cut);
-
-        // Rewrite phrase
-        var rotate = '';
-        html += '';
-        for (var l in json.phrase) {
-            l = json.phrase[l];
-            var outline = '-outline';
-            if (l != '_') outline = '';
-            html += '<div class="p-1">';
-            html += '<button type="button" class="btn btn' + outline + '-primary">';
-            html += l;
-            html += '</button>';
-            html += '</div>';
-        }
-        $('#phrase_container').empty();
-        $('#phrase_container').append(html);
-
-        // Mark letters
-        for (var l in json.guessed_letters) {
-            l = json.guessed_letters[l];
-            $('#letter_' + l).prop('disabled', true);
-            $('#letter_' + l).html('&nbsp;');
-        }
-
-        // if game_id, it is archive, disable all letters
-        if ($('#game_id').val().length > 0) {
-            $('.letter-btn').prop('disabled', true);
-        }
-
-        // Update prize pool
-        var prize_pool = calculate_prize_pool(json.phrase, json.guesses);
-        $('#prize_pool').empty();
-        $('#prize_pool').text('' + prize_pool.current.toFixed(6) + ' Nano');
-
-        // Update players list
-        // Generate array of players with guesses
-        var players = [];
-        for (var g in json.guesses) {
-            g = json.guesses[g];
-
-            var found = false;
-            for (var p in players) {
-                p = players[p];
-                if (g.account_from == p.account) {
-                    found = true;
-                    p.letters.push(amount_to_letter(g.amount));
-                }
-            }
-            if (!found) {
-                players.push({
-                    account: g.account_from,
-                    letters: [amount_to_letter(g.amount)]
-                });
-            }
-        }
-
-        // Write the table for the players list
-        html = '<table class="table table-hover">';
-        html += '<thead>';
-        html += '<tr><th>Nano Account</th><th>Letters Guessed</th><th>Projected Payout <a href="#" data-toggle="tooltip" data-placement="top" title="Projected payout is what you will receive if all the remaining letters are guessed correctly. If any incorrect guesses are made, your projected payout will increase!">(?)</a></th></tr>';
-        html += '</thead>';
-        html += '<tbody>';
-        for (var p in players) {
-            p = players[p];
-            var correct_guesses = 0;
-            for (var l in p.letters) {
-                l = p.letters[l];
-                if (json.phrase.indexOf(l) >= 0) correct_guesses += 1;
-            }
-            var payout_percent = correct_guesses / number_unique_letters_in_puzzle(json.phrase);
-            html += '<tr><td class="text-truncate"><a href="https://nanocrawler.cc/explorer/account/' + p.account + '" target="_new">' + p.account + '</a></td><td>' + p.letters.join(', ') + '</td><td>' + (prize_pool.projected*payout_percent).toFixed(6) + ' Nano (' + (100*payout_percent).toFixed(2) + '%)</td></tr>';
-        }
-        html += '</tbody>';
-        html += '</table>';
-
-        $('#accounts_list').empty();
-        $('#accounts_list').append(html);
-
-        // Enable tooltips
-        $('[data-toggle="tooltip"]').tooltip()
-
-
+        populate_data(json);
     });
 }
 

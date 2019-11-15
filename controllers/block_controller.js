@@ -50,6 +50,14 @@ exports.new_block = async function(req, res) {
                 return;
             }
 
+            // Check for valid address
+            if (fullBlock.address != site.nano_account) {
+                console.error('Received block from invalid address.');
+                console.error('Expected: ' + site.nano_account);
+                console.error('Found:    ' + fullBlock.address);
+                return;
+            }
+
             Game.findOne({}, {}, {sort: { 'date_created': -1 } }, function(err, game_results) {
 
                 // Make sure guess doesn't exist
@@ -74,12 +82,14 @@ exports.new_block = async function(req, res) {
                         amount: fullBlock.amount
                     });
 
-                    guess.save(function(error) {
+                    guess.save(async function(error) {
                         if (error) {
                             console.error('Error saving guess to db: ' + error);
                             console.error(guess);
                         } else {
-                            server.io.emit('new_guess', {});
+                            // Let all players know a new guess has been made
+                            var game_data = await Utility.get_game_data(null);
+                            server.io.emit('new_guess', game_data);
 
                             // Check if game is over
                             Guess.find({game: game_results._id}, function(err, game_guesses) {
