@@ -13,7 +13,7 @@
     "http-errors": "~1.6.2",
     "mongoose": "^5.7.3",
     "morgan": "~1.9.0",
-    "pug": "^2.0.4",
+    "pug": "^3.0.1",
     "request": "^2.88.0",
     "socket.io": "^2.4.0"
   }
